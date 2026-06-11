@@ -5,30 +5,43 @@ A complete reference implementation connecting a **Siemens Industrial Edge CNC s
 ## Architecture
 
 ```
-┌──────────────────────────────────────┐
-│  Siemens IE CNC Simulator (Python)   │
-│  simulate_ie_cnc.py                  │
-│  MotorSpeed · SpindleLoad · OEE      │
-│  FeedRate · ToolTemp · FaultCode     │
-└───────────────┬──────────────────────┘
-                │ Azure Event Hub SDK
-                │ (connection string)
-                ▼
-┌──────────────────────────────────────┐
-│  Azure Event Hub                     │
-│  cnc-telemetry                       │
-└───────────────┬──────────────────────┘
-                │ Fabric Eventstream
-                ▼
-┌──────────────────────────────────────┐
-│  Microsoft Fabric                    │
-│  KQL Database → CncTelemetry table  │
-│  Real-Time Dashboard                 │
-└──────────────────────────────────────┘
-
-Azure IoT Operations (AIO) — edge platform layer
-  K3s cluster  ·  MQTT Broker  ·  Asset Registry  ·  Dataflows
-  (installed as the IoT platform; extensible for additional devices)
+  EDGE  (K3s cluster)
+  +---------------------------------------------------------------------+
+  |                                                                     |
+  |  +------------------------------+   +---------------------------+  |
+  |  |  Siemens IE CNC Simulator    |   |  Azure IoT Operations     |  |
+  |  |  simulate_ie_cnc.py          |   |                           |  |
+  |  |                              |   |  MQTT Broker  :1883       |  |
+  |  |  MotorSpeed_RPM              |   |  Asset Registry (ADR)     |  |
+  |  |  SpindleLoad_Pct             |   |  Dataflow Engine          |  |
+  |  |  ToolTemperature_C           |   |                           |  |
+  |  |  OEE_Pct                     |   |  OPC UA / MQTT devices    |  |
+  |  |  FaultCode                   |   |  can be added here        |  |
+  |  |  DemoPhase                   |   |                           |  |
+  |  +---------------+--------------+   +-------------+-------------+  |
+  |                  |                                |                 |
+  |                  | Event Hub SDK                  | Dataflow        |
+  |                  | (connection string)            | (Kafka/TLS)     |
+  +------------------|--------------------------------|------------------+
+                     |                                |
+                     +---------------+----------------+
+                                     |
+                                     v
+  AZURE CLOUD
+  +---------------------------------------------------------------------+
+  |                                                                     |
+  |  +------------------------------+   +---------------------------+  |
+  |  |  Azure Event Hub             |   |  Microsoft Fabric         |  |
+  |  |  cnc-telemetry               +-->+  Eventstream              |  |
+  |  |                              |   |       |                   |  |
+  |  +------------------------------+   |       v                   |  |
+  |                                     |  KQL Database             |  |
+  |                                     |  CncTelemetry table       |  |
+  |                                     |       |                   |  |
+  |                                     |       v                   |  |
+  |                                     |  Real-Time Dashboard      |  |
+  |                                     +---------------------------+  |
+  +---------------------------------------------------------------------+
 ```
 
 ## What's included
