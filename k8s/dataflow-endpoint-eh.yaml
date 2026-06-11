@@ -1,0 +1,24 @@
+# ============================================================
+# DataflowEndpoint: Azure Event Hubs (Kafka protocol over TLS)
+#
+# <EH_NAMESPACE> is substituted by scripts/05-apply-k8s.sh
+# Do not apply this file directly — use the script.
+#
+# Prerequisites:
+#   - Event Hub namespace and hub created (script 04)
+#   - AIO managed identity has "Azure Event Hubs Data Sender" role
+# ============================================================
+apiVersion: connectivity.iotoperations.azure.com/v1
+kind: DataflowEndpoint
+metadata:
+  name: eventhub-endpoint
+  namespace: azure-iot-operations
+spec:
+  endpointType: Kafka
+  kafkaSettings:
+    host: <EH_NAMESPACE>.servicebus.windows.net:9093
+    authentication:
+      method: SystemAssignedManagedIdentity
+      systemAssignedManagedIdentitySettings: {}
+    tls:
+      mode: Enabled

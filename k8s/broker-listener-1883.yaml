@@ -1,0 +1,16 @@
+# ============================================================
+# BrokerListener: plain MQTT on port 1883 (no TLS, no auth)
+# WARNING: LOCAL DEV ONLY — never expose without TLS in production.
+# Apply: kubectl apply -f k8s/broker-listener-1883.yaml
+# ============================================================
+apiVersion: mqttbroker.iotoperations.azure.com/v1
+kind: BrokerListener
+metadata:
+  name: local-dev-listener
+  namespace: azure-iot-operations
+spec:
+  brokerRef: default
+  serviceType: LoadBalancer
+  ports:
+    - port: 1883
+      protocol: Mqtt
