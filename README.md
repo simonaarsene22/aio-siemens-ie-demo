@@ -40,7 +40,17 @@ A complete reference implementation connecting a **Siemens Industrial Edge CNC s
   |                                     |       |                   |  |
   |                                     |       v                   |  |
   |                                     |  Real-Time Dashboard      |  |
-  |                                     +---------------------------+  |
+  |                                     +-------------+-------------+  |
+  |                                                   |                 |
+  |                          +------------------------+                 |
+  |                          |                                          |
+  |          +---------------+---------------+                          |
+  |          |                               |                          |
+  |  +-------+-------------------+   +-------+-------------------+     |
+  |  |  Data Activator (Fabric)  |   |  Python Agent             |     |
+  |  |  Threshold-based triggers |   |  Azure OpenAI + KQL tools |     |
+  |  |  → Teams / email / PA     |   |  Conversational reasoning |     |
+  |  +---------------------------+   +---------------------------+     |
   +---------------------------------------------------------------------+
 ```
 
@@ -52,7 +62,8 @@ A complete reference implementation connecting a **Siemens Industrial Edge CNC s
 | `k8s/` | Kubernetes manifests for AIO broker and Event Hub dataflow endpoint |
 | `simulator/` | Siemens IE CNC Python simulator with demo mode |
 | `config/` | Variables template — fill in once, sourced by every script |
-| `docs/` | Step-by-step Fabric setup guide |
+| `agent/` | Python agent: Azure OpenAI + KQL tools over Fabric telemetry |
+| `docs/` | Step-by-step Fabric setup and agent guide |
 
 ## Prerequisites
 
@@ -182,6 +193,29 @@ CncTelemetry
 
 You should see rows appearing within ~30 seconds of starting the simulator.
 
+### 10 — (Optional) Run the AI agent
+
+Once data is flowing, you can query it conversationally using the Python agent:
+
+```bash
+cd agent
+pip install -r requirements.txt
+
+export KUSTO_CLUSTER="https://<eventhouse>.<workspace-id>.kusto.fabric.microsoft.com"
+export KUSTO_DATABASE="DemoDatabase"
+export AZURE_OPENAI_ENDPOINT="https://<your-resource>.openai.azure.com"
+export AZURE_OPENAI_API_KEY="<your-key>"
+export AZURE_OPENAI_DEPLOYMENT="gpt-4o"
+
+# Interactive
+python agent.py
+
+# Or a single question
+python agent.py "Is the tool temperature trending dangerously?"
+```
+
+See [docs/agents.md](docs/agents.md) for full setup, example questions, and how to add custom tools.
+
 ---
 
 ## Demo mode walkthrough
@@ -238,8 +272,12 @@ aio-siemens-ie-demo/
 ├── simulator/
 │   ├── simulate_ie_cnc.py        ← Siemens IE CNC simulator
 │   └── requirements.txt
+├── agent/
+│   ├── agent.py                  ← Azure OpenAI agent with KQL tools
+│   └── requirements.txt
 └── docs/
-    └── fabric-setup.md           ← Fabric Eventstream + KQL setup
+    ├── fabric-setup.md           ← Fabric Eventstream + KQL setup
+    └── agents.md                 ← Data Activator + Python agent setup
 ```
 
 ---

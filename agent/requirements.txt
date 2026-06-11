@@ -1,0 +1,4 @@
+azure-kusto-data>=4.3.0
+azure-identity>=1.16.0
+openai>=1.40.0
+pandas>=2.0.0
