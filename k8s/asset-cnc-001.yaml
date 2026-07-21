@@ -1,0 +1,50 @@
+# ============================================================
+# Generated from ontology/cnc-001.td.json by generate_aio_asset.py
+# (that file is itself generated from aas_cnc_submodel.json —
+#  see docs/ontology.md for the full AAS -> WoT -> AIO pipeline)
+# Do not edit by hand — regenerate instead.
+#
+# Illustrative AIO Asset definition: maps each WoT property
+# affordance onto one dataPoint sourced from the ie/cnc MQTT topic
+# (see simulator/simulate_ie_cnc.py).
+# ============================================================
+apiVersion: deviceregistry.microsoft.com/v1
+kind: Asset
+metadata:
+  name: cnc-001
+  namespace: azure-iot-operations
+spec:
+  displayName: SINUMERIK CNC-001
+  assetEndpointProfileRef: cnc-mqtt-endpoint
+  externalAssetId: urn:siemens:ie:asset:CNC-001
+  dataPoints:
+    - name: MotorSpeed_RPM
+      dataSource: "$.MotorSpeed_RPM"
+      dataType: Double
+      unit: "RPM"
+    - name: SpindleLoad_Pct
+      dataSource: "$.SpindleLoad_Pct"
+      dataType: Double
+      unit: "%"
+    - name: FeedRate_mm_min
+      dataSource: "$.FeedRate_mm_min"
+      dataType: Double
+      unit: "mm/min"
+    - name: ToolTemperature_C
+      dataSource: "$.ToolTemperature_C"
+      dataType: Double
+      unit: "degC"
+    - name: PartCount
+      dataSource: "$.PartCount"
+      dataType: Int32
+      unit: "count"
+    - name: FaultCode
+      dataSource: "$.FaultCode"
+      dataType: Int32
+    - name: RunningStatus
+      dataSource: "$.RunningStatus"
+      dataType: Boolean
+    - name: OEE_Pct
+      dataSource: "$.OEE_Pct"
+      dataType: Double
+      unit: "%"

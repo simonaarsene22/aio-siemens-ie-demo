@@ -1,0 +1,147 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {
+      "siemens": "urn:siemens:ie:cnc:property:"
+    }
+  ],
+  "id": "urn:siemens:ie:asset:CNC-001",
+  "title": "SINUMERIK CNC-001",
+  "description": "WoT capability model for the Siemens IE CNC asset, generated from its AAS submodel.",
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  },
+  "security": [
+    "nosec_sc"
+  ],
+  "properties": {
+    "MotorSpeed_RPM": {
+      "@type": "siemens:MotorSpeed_RPM",
+      "type": "number",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.MotorSpeed_RPM"
+        }
+      ],
+      "unit": "RPM",
+      "description": "Spindle motor rotational speed."
+    },
+    "SpindleLoad_Pct": {
+      "@type": "siemens:SpindleLoad_Pct",
+      "type": "number",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.SpindleLoad_Pct"
+        }
+      ],
+      "unit": "%",
+      "description": "Spindle motor load as percent of rated torque."
+    },
+    "FeedRate_mm_min": {
+      "@type": "siemens:FeedRate_mm_min",
+      "type": "number",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.FeedRate_mm_min"
+        }
+      ],
+      "unit": "mm/min",
+      "description": "Programmed axis feed rate."
+    },
+    "ToolTemperature_C": {
+      "@type": "siemens:ToolTemperature_C",
+      "type": "number",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.ToolTemperature_C"
+        }
+      ],
+      "unit": "degC",
+      "description": "Cutting tool tip temperature."
+    },
+    "PartCount": {
+      "@type": "siemens:PartCount",
+      "type": "integer",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.PartCount"
+        }
+      ],
+      "unit": "count",
+      "description": "Cumulative parts produced since asset startup."
+    },
+    "FaultCode": {
+      "@type": "siemens:FaultCode",
+      "type": "integer",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.FaultCode"
+        }
+      ],
+      "description": "Active fault/alarm code, 0 = no fault."
+    },
+    "RunningStatus": {
+      "@type": "siemens:RunningStatus",
+      "type": "boolean",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.RunningStatus"
+        }
+      ],
+      "description": "True while the spindle is turning."
+    },
+    "OEE_Pct": {
+      "@type": "siemens:OEE_Pct",
+      "type": "number",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "op": "observeproperty",
+          "contentType": "application/json",
+          "siemens:jsonPath": "$.OEE_Pct"
+        }
+      ],
+      "unit": "%",
+      "description": "Overall Equipment Effectiveness."
+    }
+  }
+}

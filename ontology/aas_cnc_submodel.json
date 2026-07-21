@@ -1,0 +1,135 @@
+{
+  "assetAdministrationShells": [
+    {
+      "modelType": "AssetAdministrationShell",
+      "id": "urn:siemens:ie:aas:CNC-001:1:0",
+      "idShort": "AAS_CNC_001",
+      "assetInformation": {
+        "assetKind": "Instance",
+        "globalAssetId": "urn:siemens:ie:asset:CNC-001"
+      },
+      "submodels": [
+        { "type": "ModelReference", "keys": [{ "type": "Submodel", "value": "urn:siemens:ie:submodel:Nameplate:CNC-001:1:0" }] },
+        { "type": "ModelReference", "keys": [{ "type": "Submodel", "value": "urn:siemens:ie:submodel:CncOperationalData:1:0" }] }
+      ]
+    }
+  ],
+  "submodels": [
+    {
+      "modelType": "Submodel",
+      "id": "urn:siemens:ie:submodel:Nameplate:CNC-001:1:0",
+      "idShort": "Nameplate",
+      "semanticId": {
+        "type": "ExternalReference",
+        "keys": [{ "type": "GlobalReference", "value": "0173-1#01-AHF579#001" }]
+      },
+      "description": [{ "language": "en", "text": "ZVEI Digital Nameplate for the Siemens Industrial Edge CNC asset." }],
+      "submodelElements": [
+        {
+          "modelType": "Property",
+          "idShort": "ManufacturerName",
+          "valueType": "xs:string",
+          "value": "Siemens AG",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAO677#002" }] }
+        },
+        {
+          "modelType": "Property",
+          "idShort": "ManufacturerProductDesignation",
+          "valueType": "xs:string",
+          "value": "SINUMERIK CNC",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAW338#001" }] }
+        },
+        {
+          "modelType": "Property",
+          "idShort": "SerialNumber",
+          "valueType": "xs:string",
+          "value": "CNC-001",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAM556#002" }] }
+        },
+        {
+          "modelType": "Property",
+          "idShort": "YearOfConstruction",
+          "valueType": "xs:string",
+          "value": "2024",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAP906#001" }] }
+        }
+      ]
+    },
+    {
+      "modelType": "Submodel",
+      "id": "urn:siemens:ie:submodel:CncOperationalData:1:0",
+      "idShort": "CncOperationalData",
+      "semanticId": {
+        "type": "ExternalReference",
+        "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:submodel:OperationalData" }]
+      },
+      "description": [{ "language": "en", "text": "Runtime telemetry surfaced by the IE S7 Connector on the IE Databus (topic ie/cnc)." }],
+      "submodelElements": [
+        {
+          "modelType": "Property",
+          "idShort": "MotorSpeed_RPM",
+          "valueType": "xs:double",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:MotorSpeed_RPM" }] },
+          "description": [{ "language": "en", "text": "Spindle motor rotational speed." }],
+          "unit": "RPM"
+        },
+        {
+          "modelType": "Property",
+          "idShort": "SpindleLoad_Pct",
+          "valueType": "xs:double",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:SpindleLoad_Pct" }] },
+          "description": [{ "language": "en", "text": "Spindle motor load as percent of rated torque." }],
+          "unit": "%"
+        },
+        {
+          "modelType": "Property",
+          "idShort": "FeedRate_mm_min",
+          "valueType": "xs:double",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:FeedRate_mm_min" }] },
+          "description": [{ "language": "en", "text": "Programmed axis feed rate." }],
+          "unit": "mm/min"
+        },
+        {
+          "modelType": "Property",
+          "idShort": "ToolTemperature_C",
+          "valueType": "xs:double",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:ToolTemperature_C" }] },
+          "description": [{ "language": "en", "text": "Cutting tool tip temperature." }],
+          "unit": "degC"
+        },
+        {
+          "modelType": "Property",
+          "idShort": "PartCount",
+          "valueType": "xs:int",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:PartCount" }] },
+          "description": [{ "language": "en", "text": "Cumulative parts produced since asset startup." }],
+          "unit": "count"
+        },
+        {
+          "modelType": "Property",
+          "idShort": "FaultCode",
+          "valueType": "xs:int",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:FaultCode" }] },
+          "description": [{ "language": "en", "text": "Active fault/alarm code, 0 = no fault." }],
+          "unit": null
+        },
+        {
+          "modelType": "Property",
+          "idShort": "RunningStatus",
+          "valueType": "xs:boolean",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:RunningStatus" }] },
+          "description": [{ "language": "en", "text": "True while the spindle is turning." }],
+          "unit": null
+        },
+        {
+          "modelType": "Property",
+          "idShort": "OEE_Pct",
+          "valueType": "xs:double",
+          "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:cnc:property:OEE_Pct" }] },
+          "description": [{ "language": "en", "text": "Overall Equipment Effectiveness." }],
+          "unit": "%"
+        }
+      ]
+    }
+  ]
+}

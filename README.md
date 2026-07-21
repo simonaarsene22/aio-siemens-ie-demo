@@ -63,7 +63,8 @@ A complete reference implementation connecting a **Siemens Industrial Edge CNC s
 | `simulator/` | Siemens IE CNC Python simulator with demo mode |
 | `config/` | Variables template — fill in once, sourced by every script |
 | `agent/` | Python agent: Azure OpenAI + KQL tools over Fabric telemetry |
-| `docs/` | Step-by-step Fabric setup and agent guide |
+| `ontology/` | Siemens AAS asset ontology for the CNC, mapped to an AIO Asset — testable locally, no cluster needed |
+| `docs/` | Step-by-step Fabric setup, agent guide, and ontology mapping guide |
 
 ## Prerequisites
 
@@ -166,6 +167,9 @@ python simulate_ie_cnc.py
 
 # Demo mode (cycles Normal → Degrading → Fault → Recovering every 10 min):
 DEMO_MODE=true DEMO_CYCLE_MINUTES=10 python simulate_ie_cnc.py
+
+# Console mode — no Azure/AIO dependency, prints locally (good for dry runs / demos):
+PUBLISH_MODE=console DEMO_MODE=true DEMO_CYCLE_MINUTES=10 python simulate_ie_cnc.py
 ```
 
 You should see JSON payloads printed every 5 seconds.
@@ -215,6 +219,21 @@ python agent.py "Is the tool temperature trending dangerously?"
 ```
 
 See [docs/agents.md](docs/agents.md) for full setup, example questions, and how to add custom tools.
+
+### 11 — (Optional) Test the Siemens ontology → AIO asset mapping
+
+No cluster required — this validates locally that the Siemens AAS ontology
+for the CNC survives the hop to the WoT Thing Description AIO's connector
+framework actually reads, matches what the simulator publishes, and that the
+generated AIO Asset definition stays in sync with all of it:
+
+```bash
+python ontology/generate_wot_td.py
+python ontology/generate_aio_asset.py
+python -m unittest ontology.test_ontology_mapping -v
+```
+
+See [docs/ontology.md](docs/ontology.md) for what's being modeled and why.
 
 ---
 
@@ -268,16 +287,25 @@ aio-siemens-ie-demo/
 │   └── 06-verify.sh              ← Full stack health check
 ├── k8s/
 │   ├── broker-listener-1883.yaml ← AIO MQTT broker on port 1883
-│   └── dataflow-endpoint-eh.yaml ← Event Hub Kafka endpoint (parameterized)
+│   ├── dataflow-endpoint-eh.yaml ← Event Hub Kafka endpoint (parameterized)
+│   └── asset-cnc-001.yaml        ← Generated AIO Asset (from ontology/)
 ├── simulator/
 │   ├── simulate_ie_cnc.py        ← Siemens IE CNC simulator
 │   └── requirements.txt
 ├── agent/
 │   ├── agent.py                  ← Azure OpenAI agent with KQL tools
 │   └── requirements.txt
+├── ontology/
+│   ├── aas_cnc_submodel.json     ← Siemens AAS asset ontology for the CNC
+│   ├── aas_loader.py             ← Shared AAS-reading helper
+│   ├── generate_wot_td.py        ← Maps the AAS ontology onto a WoT Thing Description
+│   ├── cnc-001.td.json           ← Generated WoT model (what AIO's connector reads)
+│   ├── generate_aio_asset.py     ← Maps the WoT model onto an AIO Asset
+│   └── test_ontology_mapping.py  ← Local test: AAS vs WoT vs simulator vs AIO asset
 └── docs/
     ├── fabric-setup.md           ← Fabric Eventstream + KQL setup
-    └── agents.md                 ← Data Activator + Python agent setup
+    ├── agents.md                 ← Data Activator + Python agent setup
+    └── ontology.md               ← Ontology mapping guide
 ```
 
 ---

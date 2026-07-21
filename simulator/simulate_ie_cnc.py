@@ -1,45 +1,77 @@
 """
-Siemens Industrial Edge CNC simulator — sends to Azure Event Hub directly.
+Siemens Industrial Edge CNC simulator.
 
 Mimics the payload format produced by the IE S7 Connector on the IE Databus
-(topic: ie/cnc). Publishes directly to the demo Event Hub so data appears in
-the PartnerPLCDemo / PlcTelemetry KQL table without needing the partner's setup.
+(topic: ie/cnc). Supports three publish targets:
 
-Usage:
-    pip install azure-eventhub
-    export EH_CONNECTION_STRING="Endpoint=sb://eh-partner-plc-demo..."
-    python simulate_ie_cnc.py
+  PUBLISH_MODE=eventhub (default)
+      Publishes directly to Azure Event Hub — shortcut path for quick demos.
+      Requires: pip install azure-eventhub
+      export EH_CONNECTION_STRING="Endpoint=sb://..."
 
-    # Demo mode — cycles through: Normal → Degrading → Fault → Recovering
+  PUBLISH_MODE=mqtt
+      Publishes to the AIO MQTT Broker on topic ie/cnc — the real edge path
+      through Azure IoT Operations → Dataflow → Event Hub.
+      Requires: pip install paho-mqtt
+      export MQTT_HOST=172.25.110.21   # local-dev-listener LoadBalancer IP
+      export MQTT_PORT=1883            # optional, default 1883
+      export MQTT_TOPIC=ie/cnc        # optional, default ie/cnc
+
+  PUBLISH_MODE=console
+      Prints payloads to stdout only — no Azure/AIO dependency. Useful for
+      demos or dry runs when no cluster or Event Hub is deployed.
+
+Demo mode — cycles through: Normal → Degrading → Fault → Recovering
     DEMO_MODE=true DEMO_CYCLE_MINUTES=30 python simulate_ie_cnc.py
 
-    # Optional overrides:
+Optional overrides:
     PUBLISH_INTERVAL=3 MACHINE_ID=CNC-002 python simulate_ie_cnc.py
 """
 import json
 import math
 import os
 import random
+import sys
 import time
 from datetime import datetime, timezone
 
-from azure.eventhub import EventHubProducerClient, EventData
+# Windows consoles default to cp1252, which can't print the arrows/em-dashes
+# used in the status banner below — force UTF-8 stdout so `python
+# simulate_ie_cnc.py` doesn't crash on startup.
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # ── Config ────────────────────────────────────────────────────────────────────
+PUBLISH_MODE       = os.environ.get("PUBLISH_MODE", "eventhub").lower()
 CONNECTION_STRING  = os.environ.get("EH_CONNECTION_STRING")
 EVENTHUB_NAME      = os.environ.get("EH_NAME", "plc-telemetry")
+MQTT_HOST          = os.environ.get("MQTT_HOST", "")
+MQTT_PORT          = int(os.environ.get("MQTT_PORT", "1883"))
+MQTT_TOPIC         = os.environ.get("MQTT_TOPIC", "ie/cnc")
 PUBLISH_INTERVAL   = float(os.environ.get("PUBLISH_INTERVAL", "5"))
 MACHINE_ID         = os.environ.get("MACHINE_ID", "CNC-001")
 DEMO_MODE          = os.environ.get("DEMO_MODE", "false").lower() == "true"
 DEMO_CYCLE_SECONDS = int(os.environ.get("DEMO_CYCLE_MINUTES", "30")) * 60
 
-if not CONNECTION_STRING:
-    raise SystemExit(
-        "Set EH_CONNECTION_STRING to the Event Hub connection string.\n"
-        "Example:\n"
-        "  export EH_CONNECTION_STRING='Endpoint=sb://eh-partner-plc-demo"
-        ".servicebus.windows.net/;SharedAccessKeyName=...'\n"
-    )
+if PUBLISH_MODE == "eventhub":
+    from azure.eventhub import EventHubProducerClient, EventData
+    if not CONNECTION_STRING:
+        raise SystemExit(
+            "Set EH_CONNECTION_STRING to the Event Hub connection string.\n"
+            "Example:\n"
+            "  export EH_CONNECTION_STRING='Endpoint=sb://eh-partner-plc-demo"
+            ".servicebus.windows.net/;SharedAccessKeyName=...'\n"
+        )
+elif PUBLISH_MODE == "mqtt":
+    import paho.mqtt.client as mqtt
+    if not MQTT_HOST:
+        raise SystemExit(
+            "Set MQTT_HOST to the AIO broker IP (e.g. export MQTT_HOST=172.25.110.21)\n"
+        )
+elif PUBLISH_MODE == "console":
+    pass  # no external dependency, no credentials required
+else:
+    raise SystemExit(f"Unknown PUBLISH_MODE={PUBLISH_MODE!r}. Use 'eventhub', 'mqtt', or 'console'.")
 
 # ── Demo phase boundaries (fraction of cycle) ─────────────────────────────────
 #   NORMAL     0.00 → 0.40  (12 min of 30)
@@ -192,20 +224,39 @@ def build_ie_payload() -> str:
 
 
 def main():
-    mode_label = (
+    demo_label = (
         f"DEMO (cycle={int(DEMO_CYCLE_SECONDS/60)}min: "
         "Normal→Degrading→Fault→Recovering)"
         if DEMO_MODE else "NORMAL"
     )
-    print(f"IE CNC Simulator — machine: {MACHINE_ID}  |  mode: {mode_label}")
-    print(f"Target Event Hub: {EVENTHUB_NAME}")
+    print(f"IE CNC Simulator — machine: {MACHINE_ID}  |  mode: {demo_label}")
+    print(f"Publish mode: {PUBLISH_MODE.upper()}")
     print(f"Interval: {PUBLISH_INTERVAL}s   |   Ctrl+C to stop\n")
 
+    if PUBLISH_MODE == "mqtt":
+        _run_mqtt()
+    elif PUBLISH_MODE == "console":
+        _run_console()
+    else:
+        _run_eventhub()
+
+
+def _run_console():
+    try:
+        while True:
+            payload = build_ie_payload()
+            print(f"  -> {payload}")
+            time.sleep(PUBLISH_INTERVAL)
+    except KeyboardInterrupt:
+        print("\nSimulator stopped.")
+
+
+def _run_eventhub():
+    print(f"Target Event Hub: {EVENTHUB_NAME}")
     producer = EventHubProducerClient.from_connection_string(
         conn_str=CONNECTION_STRING,
         eventhub_name=EVENTHUB_NAME,
     )
-
     try:
         while True:
             payload = build_ie_payload()
@@ -224,6 +275,29 @@ def main():
         print("\nSimulator stopped.")
     finally:
         producer.close()
+
+
+def _run_mqtt():
+    import paho.mqtt.client as mqtt
+
+    print(f"Target MQTT broker: {MQTT_HOST}:{MQTT_PORT}  topic: {MQTT_TOPIC}")
+
+    client = mqtt.Client(client_id=f"ie-cnc-sim-{MACHINE_ID}")
+    client.connect(MQTT_HOST, MQTT_PORT, keepalive=60)
+    client.loop_start()
+
+    try:
+        while True:
+            payload = build_ie_payload()
+            result  = client.publish(MQTT_TOPIC, payload, qos=1)
+            result.wait_for_publish()
+            print(f"  -> [{MQTT_TOPIC}] {payload}")
+            time.sleep(PUBLISH_INTERVAL)
+    except KeyboardInterrupt:
+        print("\nSimulator stopped.")
+    finally:
+        client.loop_stop()
+        client.disconnect()
 
 
 if __name__ == "__main__":
