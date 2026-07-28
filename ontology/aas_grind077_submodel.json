@@ -2,28 +2,28 @@
   "assetAdministrationShells": [
     {
       "modelType": "AssetAdministrationShell",
-      "id": "urn:siemens:ie:aas:CNC-001:1:0",
-      "idShort": "AAS_CNC_001",
+      "id": "urn:siemens:ie:aas:GRIND-077:1:0",
+      "idShort": "AAS_GRIND_077",
       "assetInformation": {
         "assetKind": "Instance",
-        "globalAssetId": "urn:siemens:ie:asset:CNC-001"
+        "globalAssetId": "urn:siemens:ie:asset:GRIND-077"
       },
       "submodels": [
-        { "type": "ModelReference", "keys": [{ "type": "Submodel", "value": "urn:siemens:ie:submodel:Nameplate:CNC-001:1:0" }] },
-        { "type": "ModelReference", "keys": [{ "type": "Submodel", "value": "urn:siemens:ie:submodel:CncOperationalData:1:0" }] }
+        { "type": "ModelReference", "keys": [{ "type": "Submodel", "value": "urn:siemens:ie:submodel:Nameplate:GRIND-077:1:0" }] },
+        { "type": "ModelReference", "keys": [{ "type": "Submodel", "value": "urn:siemens:ie:submodel:GrindOperationalData:1:0" }] }
       ]
     }
   ],
   "submodels": [
     {
       "modelType": "Submodel",
-      "id": "urn:siemens:ie:submodel:Nameplate:CNC-001:1:0",
+      "id": "urn:siemens:ie:submodel:Nameplate:GRIND-077:1:0",
       "idShort": "Nameplate",
       "semanticId": {
         "type": "ExternalReference",
         "keys": [{ "type": "GlobalReference", "value": "0173-1#01-AHF579#001" }]
       },
-      "description": [{ "language": "en", "text": "ZVEI Digital Nameplate for the Siemens Industrial Edge CNC asset." }],
+      "description": [{ "language": "en", "text": "ZVEI Digital Nameplate for the legacy S7-300 grinding cell. Retrofitted, no IE Databus — raw S7 PLC tags only." }],
       "submodelElements": [
         {
           "modelType": "Property",
@@ -36,41 +36,41 @@
           "modelType": "Property",
           "idShort": "ManufacturerProductDesignation",
           "valueType": "xs:string",
-          "value": "SINUMERIK CNC",
+          "value": "S7-300 legacy grinding cell",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAW338#001" }] }
         },
         {
           "modelType": "Property",
           "idShort": "SerialNumber",
           "valueType": "xs:string",
-          "value": "CNC-001",
+          "value": "GRIND-077",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAM556#002" }] }
         },
         {
           "modelType": "Property",
           "idShort": "YearOfConstruction",
           "valueType": "xs:string",
-          "value": "2024",
+          "value": "2011",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "0173-1#02-AAP906#001" }] }
         }
       ]
     },
     {
       "modelType": "Submodel",
-      "id": "urn:siemens:ie:submodel:CncOperationalData:1:0",
-      "idShort": "CncOperationalData",
+      "id": "urn:siemens:ie:submodel:GrindOperationalData:1:0",
+      "idShort": "GrindOperationalData",
       "semanticId": {
         "type": "ExternalReference",
         "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1" }]
       },
-      "description": [{ "language": "en", "text": "Runtime telemetry surfaced by the IE S7 Connector on the IE Databus (topic ie/cnc). Conforms to the shared machine-operational-data profile — see ontology/profiles/machine_operational_data_profile.json." }],
+      "description": [{ "language": "en", "text": "Same profile as CncOperationalData (see ontology/profiles/machine_operational_data_profile.json), instantiated for a legacy S7-300 grinder. The raw PLC tags underneath share nothing with CNC-001's naming or units — see ontology/bindings/grind077_binding.json for how they're reconciled." }],
       "submodelElements": [
         {
           "modelType": "Property",
           "idShort": "MotorSpeed_RPM",
           "valueType": "xs:double",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:MotorSpeed_RPM" }] },
-          "description": [{ "language": "en", "text": "Spindle motor rotational speed." }],
+          "description": [{ "language": "en", "text": "Grinding wheel motor rotational speed." }],
           "unit": "RPM"
         },
         {
@@ -78,7 +78,7 @@
           "idShort": "SpindleLoad_Pct",
           "valueType": "xs:double",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:SpindleLoad_Pct" }] },
-          "description": [{ "language": "en", "text": "Spindle motor load as percent of rated torque." }],
+          "description": [{ "language": "en", "text": "Wheel motor load as percent of rated torque." }],
           "unit": "%"
         },
         {
@@ -86,7 +86,7 @@
           "idShort": "FeedRate_mm_min",
           "valueType": "xs:double",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:FeedRate_mm_min" }] },
-          "description": [{ "language": "en", "text": "Programmed axis feed rate." }],
+          "description": [{ "language": "en", "text": "Table feed rate." }],
           "unit": "mm/min"
         },
         {
@@ -94,7 +94,7 @@
           "idShort": "ToolTemperature_C",
           "valueType": "xs:double",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:ToolTemperature_C" }] },
-          "description": [{ "language": "en", "text": "Cutting tool tip temperature." }],
+          "description": [{ "language": "en", "text": "Grinding wheel temperature." }],
           "unit": "degC"
         },
         {
@@ -118,7 +118,7 @@
           "idShort": "RunningStatus",
           "valueType": "xs:boolean",
           "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:RunningStatus" }] },
-          "description": [{ "language": "en", "text": "True while the spindle is turning." }],
+          "description": [{ "language": "en", "text": "True while the wheel motor is running." }],
           "unit": null
         },
         {

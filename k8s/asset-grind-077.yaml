@@ -1,5 +1,5 @@
 # ============================================================
-# Generated from ontology/cnc-001.td.json by generate_aio_asset.py
+# Generated from ontology/grind-077.td.json by generate_aio_asset.py
 # (that file is itself generated from this device's AAS submodel --
 #  see docs/ontology.md for the full AAS -> WoT -> AIO pipeline)
 # Do not edit by hand -- regenerate instead.
@@ -7,40 +7,44 @@
 apiVersion: deviceregistry.microsoft.com/v1
 kind: Asset
 metadata:
-  name: cnc-001
+  name: grind-077
   namespace: azure-iot-operations
 spec:
-  displayName: SINUMERIK CNC-001
-  assetEndpointProfileRef: cnc-001-mqtt-endpoint
-  externalAssetId: urn:siemens:ie:asset:CNC-001
+  displayName: Legacy S7-300 Grinding Cell GRIND-077
+  assetEndpointProfileRef: grind-077-mqtt-endpoint
+  externalAssetId: urn:siemens:ie:asset:GRIND-077
   dataPoints:
     - name: MotorSpeed_RPM
-      dataSource: "$.MotorSpeed_RPM"
+      dataSource: "$.['DB10.DBD4']"
       dataType: Double
       unit: "RPM"
     - name: SpindleLoad_Pct
-      dataSource: "$.SpindleLoad_Pct"
+      dataSource: "$.MW102"
       dataType: Double
       unit: "%"
+      # raw representation differs from the profile; Dataflow applies transform: divide_10
     - name: FeedRate_mm_min
-      dataSource: "$.FeedRate_mm_min"
+      dataSource: "$.['DB10.DBD8']"
       dataType: Double
       unit: "mm/min"
     - name: ToolTemperature_C
-      dataSource: "$.ToolTemperature_C"
+      dataSource: "$.['DB10.DBD12']"
       dataType: Double
       unit: "degC"
+      # raw representation differs from the profile; Dataflow applies transform: fahrenheit_to_celsius
     - name: PartCount
-      dataSource: "$.PartCount"
+      dataSource: "$.['DB20.DBW0']"
       dataType: Int32
       unit: "count"
     - name: FaultCode
-      dataSource: "$.FaultCode"
+      dataSource: "$.['DB10.DBW20']"
       dataType: Int32
     - name: RunningStatus
-      dataSource: "$.RunningStatus"
+      dataSource: "$.['M20.1']"
       dataType: Boolean
+      # raw representation differs from the profile; Dataflow applies transform: int_to_bool
     - name: OEE_Pct
-      dataSource: "$.OEE_Pct"
+      dataSource: "$.['DB30.DBD0']"
       dataType: Double
       unit: "%"
+      # raw representation differs from the profile; Dataflow applies transform: fraction_to_percent

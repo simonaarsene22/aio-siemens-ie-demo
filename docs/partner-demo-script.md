@@ -1,142 +1,147 @@
-# Partner demo script — Siemens ontology → AIO integration
+# Partner demo script — one profile, two very different machines
 
-Narrative in one line: *"Siemens describes this CNC using the open AAS
-standard, AIO resolves assets through the W3C Web of Things standard — here's
-proof that mapping stays honest across both hops into Azure IoT Operations,
-live."*
+Narrative in one line: *"Here's one Siemens machine exactly as Industrial Edge
+sees it today — a bag of tags, no shared meaning. Watch what happens when we
+give it a profile: it becomes a typed asset Azure IoT Operations understands.
+Then watch a legacy machine with none of the modern conveniences — cryptic
+PLC tags, wrong units — land in the exact same shape. That same pattern feeds
+Fabric today and any other consumer — Databricks included — tomorrow."*
 
-Target length: ~15 minutes + Q&A.
+Target length: ~13 minutes + Q&A. Deeper technical proof (the full 14-test
+suite) is an appendix at the end — pull it out only if asked.
 
 ---
 
 ## Decision point — confirm before the meeting
 
-The live-telemetry segment below has two possible paths depending on what's
-deployed right now:
-
 | Path | Requires | What it shows |
 |---|---|---|
-| **A — Live Azure** | A real Event Hub (or MQTT broker on a deployed AIO cluster) with `EH_CONNECTION_STRING` set | Full edge→cloud path, optionally into a live Fabric KQL dashboard |
-| **B — Console only** | Nothing — runs fully offline | Same ontology/telemetry story, no cloud dependency, zero risk of a live-infra hiccup in front of the partner |
+| **B — Console only (default)** | Nothing — runs fully offline | The whole story, zero cloud dependency, zero live-infra risk |
+| **A — Live Azure** | A real Event Hub / deployed AIO cluster | Same story, plus a live Fabric KQL dashboard as the downstream leg |
 
-As of now there's no cluster/Event Hub deployed in this session, so **Path B
-is the safe default**. If you want Path A, we'd need to redeploy
-(`scripts/01`–`05`) beforehand and confirm `az iot ops check` passes.
+As of now there's no cluster/Event Hub deployed, so **Path B is the
+default**. `PUBLISH_MODE=console` (the default for both simulators) prints
+payloads to stdout with no Azure/AIO dependency.
 
-Path B is ready: `PUBLISH_MODE=console` prints payloads to stdout with no
-Azure/AIO dependency at all (added specifically so this demo doesn't need
-live infra). Also fixed while testing this: the simulator's startup banner
-used to crash on Windows consoles (cp1252 can't print `→`/`—`) — it now
-forces UTF-8 stdout, so `python simulate_ie_cnc.py` just works.
+**On Databricks**: it is not part of this build. It comes up only as a
+one-line generalization at the close — don't demo it, don't imply it's wired
+up.
 
 ---
 
-## Pre-demo checklist (T-15 min)
+## Pre-demo checklist (T-10 min)
 
-- [ ] Confirm Path A or B (above) and, if A, that `az iot ops check` is green
-- [ ] Two terminals open, both `cd`'d into the repo root
-- [ ] `python -m unittest ontology.test_ontology_mapping -v` run once beforehand as a dry run — confirm 13/13 pass
-- [ ] `ontology/aas_cnc_submodel.json`, `ontology/cnc-001.td.json`, `k8s/asset-cnc-001.yaml`, and `docs/ontology.md`'s pipeline diagram open in editor tabs, ready to switch to
+- [ ] One terminal, `cd`'d into the repo root
+- [ ] `python ontology/show_live_mapping.py cnc001` and `python ontology/show_live_mapping.py grind077` both run once beforehand — confirm two clean 8-row tables
+- [ ] `ontology/aas_cnc_submodel.json` open in an editor tab — the only ontology file you need on screen for the main flow
 - [ ] Font size large enough to read from across a table / on screen share
-- [ ] Know the two Siemens/standards-recognizable details to point at: (1) the Nameplate `semanticId` values (e.g. `0173-1#01-AHF579#001`) are real ECLASS/IRDI codes from the ZVEI Digital Nameplate spec, (2) the WoT Thing Description is real W3C WoT TD 1.1 shape (`@context`, `properties`, `forms`) — this is what signals "not a toy schema" to a technical audience
+- [ ] Two recognizable details ready to point at if asked: (1) the Nameplate `semanticId` values (e.g. `0173-1#01-AHF579#001`) are real ECLASS/IRDI codes from the ZVEI Digital Nameplate spec, (2) GRIND-077's raw tags (`DB10.DBD4`, `MW102`) are realistic S7 absolute addresses — signals "not a toy problem"
 
 ---
 
 ## Script
 
-### 1. Frame the problem (2 min) — talking, no screen
+### 1. Before — the device as Industrial Edge sees it today (2 min)
 
-Say something like: *"When you connect a Siemens edge asset into a partner's
-IoT platform, the risk isn't the wire protocol — it's semantic drift. Their
-asset model says one thing, your platform's asset model says another, and
-nobody notices until a dashboard shows the wrong unit. We're going to show
-you how we keep those two in sync, and prove it rather than just claim it."*
+Start the CNC simulator, console mode, **without** narrating any ontology yet:
 
-### 2. Show the Siemens-side ontology (3 min) — `ontology/aas_cnc_submodel.json`
-
-- Open the file. Point at the `Nameplate` submodel first — *"this is the
-  standard ZVEI Digital Nameplate shape, same semanticIds you'd get from a
-  real Siemens AAS server."*
-- Scroll to `CncOperationalData`. Point at one `Property` (e.g.
-  `ToolTemperature_C`) — walk through `semanticId`, `valueType`, `unit`.
-- Say: *"Every tag this machine exposes is declared once, here, with a type
-  and a unit. This is the source of truth — not the simulator code, not the
-  AIO config."*
-
-### 3. Show the WoT layer (2 min) — `ontology/cnc-001.td.json`
-
-- Say: *"AIO's connector framework doesn't read Siemens' ontology directly —
-  it resolves what a device exposes through a W3C Web of Things Thing
-  Description. So the ontology has to survive one more hop before it ever
-  touches Azure."*
-- Run the generator live:
-
-```bash
-python ontology/generate_wot_td.py
-```
-
-- Open the output. Point at one property (e.g. `ToolTemperature_C`) and show
-  its `@type` — *"this is the exact same semanticId URN as the AAS property,
-  not just the same name. That's checked, not assumed — if a rename on
-  either side breaks that link, the test in a minute catches it."*
-
-### 4. Show the AIO-side mapping (1 min) — `k8s/asset-cnc-001.yaml`
-
-- Open the generated file. *"This is generated, not hand-maintained — one
-  more command turns the WoT model into an Azure IoT Operations Asset
-  definition."*
-
-```bash
-python ontology/generate_aio_asset.py
-```
-
-- *"If someone adds a tag on the Siemens side, both of these regenerate
-  automatically — no manual asset editing in AIO."*
-
-### 5. Prove it, live (2 min) — the integrity test
-
-```bash
-python -m unittest ontology.test_ontology_mapping -v
-```
-
-- While it runs: *"This isn't a demo of files that happen to agree today —
-  it checks the AAS-to-WoT hop, the WoT-to-AIO hop, and the real simulator
-  output, all three, every run. If any one of those drifts, this fails and
-  names the exact property."*
-- Let all 13 tests print `ok`.
-- **Optional gut-punch moment**: if you want a bigger reaction, briefly
-  rename a field in a scratch copy beforehand and show the test failing with
-  a clear message, then switch back to the real file and show it passing.
-  Only do this if you've rehearsed it — don't improvise a live break.
-
-### 6. Live telemetry (5–6 min)
-
-**Path A (live Azure):**
-```bash
-cd simulator
-export EH_CONNECTION_STRING="<from scripts/04 output>"
-DEMO_MODE=true DEMO_CYCLE_MINUTES=10 python simulate_ie_cnc.py
-```
-Narrate the phase cycle as it happens (Normal → Degrading → Fault →
-Recovering) and, if Fabric is live, flip to the KQL dashboard and show
-`OEE_Pct` dropping in real time — tie each field back to the ontology
-Property you showed in step 2.
-
-**Path B (console only):**
 ```bash
 cd simulator
 PUBLISH_MODE=console DEMO_MODE=true DEMO_CYCLE_MINUTES=10 python simulate_ie_cnc.py
 ```
-Same narration, minus the cloud/Fabric leg — the payloads print locally and
-you talk through them matching the ontology field-by-field.
 
-### 7. Close (1 min)
+Let a couple of payloads print, then say:
 
-*"So: one ontology file is the contract, one generated WoT model is the
-handshake AIO actually understands, and the AIO asset is generated from
-that, not hand-typed. All three are enforced by an automated test, not a
-code review checklist. That's the pattern we'd extend to every other asset
-type as this scales past one CNC."*
+*"This is one Siemens CNC, managed the way Industrial Edge Management shows
+it today — a stream of tags. `MotorSpeed_RPM`, `ToolTemperature_C`,
+`FaultCode`. No enforced type, no unit, no shared meaning outside this one
+JSON blob. If AIO, Fabric, or anything else wants to consume this, someone
+hand-writes that mapping today — and it silently breaks the moment a tag
+gets renamed."*
+
+Leave it running in the background for the rest of the demo.
+
+### 2. Add the profile — the Siemens asset model (2 min) — `ontology/aas_cnc_submodel.json`
+
+- Open the file. Point at `Nameplate` first — *"real ZVEI Digital Nameplate
+  shape, same semanticIds a real Siemens AAS server would give you."*
+- Scroll to `CncOperationalData`, point at one property (e.g.
+  `ToolTemperature_C`) — *"same tag you just saw in the raw stream, but now
+  it has a `semanticId`, a `valueType`, a unit. And this isn't private to
+  this one CNC — it's an instance of a shared profile,
+  `machine_operational_data_profile.json`. Any machine that implements the
+  same profile becomes interchangeable to AIO. That's what we're about to
+  prove."*
+
+### 3. Transform and ingest — into AIO (2 min)
+
+*"AIO doesn't read Siemens' ontology directly — it speaks a different
+language, the W3C Web of Things standard. So the profile gets transformed,
+automatically, into the shape AIO actually understands, then into an AIO
+asset."*
+
+```bash
+python ontology/generate_wot_td.py cnc001
+python ontology/generate_aio_asset.py cnc001
+python ontology/show_live_mapping.py cnc001
+```
+
+Point at the last command's output — one table, one row per tag: the AIO
+asset property, the raw field, the transform (all `identity` for this
+device), and the **live value** resolved from the device streaming in the
+background.
+
+*"That's the 'after' picture for a well-behaved device. Now the actual
+test."*
+
+### 4. The hard case — a machine that doesn't cooperate (3 min) — the payoff
+
+*"Every machine you'll actually meet in the field doesn't look like CNC-001.
+Here's GRIND-077 — a legacy S7-300 grinding cell, no IE Databus, just raw PLC
+addresses."*
+
+```bash
+python -c "import sys; sys.path.insert(0,'simulator'); import simulate_grind077_plc as g; print(g.build_raw_payload())"
+```
+
+*"Look at that: `DB10.DBD4`, `MW102`, `M20.1`. No semantic names. And the
+units are wrong on top of it — load is a scaled integer, temperature is in
+Fahrenheit, running status is a raw 0-or-1, not true/false. This is the
+actual hard problem."*
+
+```bash
+python ontology/generate_wot_td.py grind077
+python ontology/generate_aio_asset.py grind077
+python ontology/show_live_mapping.py grind077
+```
+
+Point at the `transform` column — `divide_10`, `fahrenheit_to_celsius`,
+`int_to_bool` — then at the `AIO dataPoint` column.
+
+*"Same property names. Same units. Same shape as CNC-001, two commands ago —
+because both machines implement the same profile, and the profile is what
+AIO actually cares about, not the wire format underneath. Nothing about this
+machine's messiness reached AIO."*
+
+### 5. Flows onward — Fabric today, anything tomorrow (2 min)
+
+**Path A (live Azure)**: flip to the Fabric KQL dashboard, show
+`CncTelemetry` rows landing with the same field names and units you just
+saw in the ontology.
+
+**Path B (console only)**: *"From here it's one Event Hub hop into a Fabric
+Eventstream and a KQL table — same field names, same types, same units, for
+both machines. And because what AIO has is just typed data on a standard
+shape, the exact same pattern is what would feed Databricks, or any other
+consumer, without touching either machine's ontology again."*
+
+### 6. Close (1 min)
+
+*"One profile is the contract. Two machines — one modern, one from 2011 with
+none of the conveniences — both land in AIO looking identical, because both
+implement it. That's the difference between 'a bag of tags' and 'an asset,'
+and it's the pattern we'd repeat for every machine on the floor, not just
+these two."*
 
 ---
 
@@ -145,18 +150,44 @@ type as this scales past one CNC."*
 | Question | Answer |
 |---|---|
 | "Is this the real AAS standard or a simplified version?" | Real AAS v3 JSON metamodel shape (IDTA-01001-3-0), with real ZVEI nameplate semanticIds. Simplified in that it's one instance, not a full AAS server/repository. |
-| "Does this talk to a real AAS server / Siemens IE ontology export?" | Not yet — today it's a hand-authored submodel matching the simulator's actual tags. Natural next step is importing straight from an IE-exported AAS package instead of hand-authoring it. |
-| "Why is WoT in here — is that actually what AIO uses?" | Yes — AIO's connector framework (Akri) resolves device/asset capabilities against a W3C WoT Thing Description, not against a vendor ontology directly. That's why the pipeline has that middle layer rather than mapping AAS straight to an AIO asset. |
-| "Is the MQTT `jsonPath` field in the TD a real WoT keyword?" | No, flagged as such in the code — the WoT MQTT binding doesn't yet standardize "one topic, many properties via JSON path" the way this IE Databus topic works. It's a documented pragmatic extension, not a spec claim. |
-| "How does this handle OPC UA specifically?" | AIO's native Asset CRDs target OPC UA/media/REST connectors most directly; this MQTT-sourced asset is the illustrative case — same WoT TD, same test, the dataflow-side mapping differs. Worth a follow-up if they want the OPC UA path specifically. |
-| "What happens when you add a new machine type, not just CNC-002?" | New AAS submodel, same two generators, same test — the pattern doesn't change per asset type. |
+| "Is GRIND-077 a real machine or a made-up example?" | Simulated, but the raw tag shape (absolute S7 addresses, scaled integers, Fahrenheit) is deliberately realistic — modeled on genuine legacy-PLC integration pain, not invented for effect. |
+| "Is Databricks actually wired up?" | No — mentioned only as a generalization. The pattern (typed data, standard shape) is what makes adding a second consumer straightforward; it isn't built or demoed today. |
+| "Why is WoT in here — is that actually what AIO uses?" | Yes — AIO's connector framework (Akri) resolves device/asset capabilities against a W3C WoT Thing Description, not a vendor ontology directly. |
+| "How do I know the profile, the ontology, and the transforms actually agree, not just today?" | There's a 14-test automated suite (`ontology/test_ontology_mapping.py`) that checks profile conformance across both devices, both AAS→WoT hops, every transform's correctness, and both WoT→AIO hops — all against real simulator output. Happy to run it — see appendix. |
+| "How does this handle OPC UA specifically?" | AIO's native Asset CRDs target OPC UA/media/REST connectors most directly; this MQTT-sourced asset is the illustrative case — same pattern, the dataflow-side mapping differs. |
+| "What happens when you add a third machine type?" | New AAS submodel conforming to the same profile, a binding file only if its raw tags need reconciling, same two generators, same test — the pattern doesn't change per asset type. |
 
 ---
 
 ## If something breaks live
 
-- Test failure you didn't expect: don't debug live — say *"good, this is
-  exactly the kind of thing this is designed to catch, let's come back to it
-  after"* and move on to the next section.
-- Live Azure (Path A) unreachable: switch to Path B (`PUBLISH_MODE=console`)
-  on the spot — no setup needed — or fall back to a pre-recorded take.
+- Simulator or generator errors: don't debug live — say *"let's come back to
+  that after"* and move to the next beat.
+- Live Azure (Path A) unreachable: fall back to Path B narration — no setup
+  needed, nothing to fix.
+
+---
+
+## Appendix — deeper technical proof (only if asked)
+
+Everything in the main script is generated by a handful of commands and
+shown via two tables. If a technical stakeholder wants to see it's actually
+*enforced*, not just internally consistent today, run the full test suite:
+
+```bash
+python -m unittest ontology.test_ontology_mapping -v
+```
+
+14 tests, across both devices: each AAS submodel is well-formed; both
+genuinely conform to the same profile (same submodel-level semanticId, same
+property set, same type/unit/semanticId per property); GRIND-077's raw
+payload is confirmed to contain none of the canonical names (the premise
+check — otherwise the binding wouldn't be proving anything) while CNC-001's
+does; each AAS property survives the hop into its WoT Thing Description with
+the *same* semanticId; applying each device's transform to real raw
+telemetry resolves to a value matching the ontology's declared type; and
+each generated AIO asset has one dataPoint per property, resolving against
+real telemetry. Open `ontology/profiles/machine_operational_data_profile.json`,
+`ontology/bindings/grind077_binding.json`, `ontology/*.td.json`, and
+`k8s/asset-*.yaml` if they want to see the intermediate artifacts — all
+generated, none hand-maintained.

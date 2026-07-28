@@ -1,0 +1,15 @@
+{
+  "device": "GRIND-077",
+  "profile": "urn:siemens:ie:profile:machine-operational-data:v1",
+  "description": "Per-property raw tag + transform needed to resolve GRIND-077's raw S7 payload into the shared machine-operational-data profile. CNC-001 needs no binding file at all — its simulator already emits the profile's field names 1:1, so the generators default to an identity mapping. GRIND-077 is the case a profile actually has to earn its keep for.",
+  "mappings": [
+    { "idShort": "MotorSpeed_RPM",   "rawField": "DB10.DBD4",  "transform": "identity" },
+    { "idShort": "SpindleLoad_Pct",  "rawField": "MW102",      "transform": "divide_10" },
+    { "idShort": "FeedRate_mm_min",  "rawField": "DB10.DBD8",  "transform": "identity" },
+    { "idShort": "ToolTemperature_C","rawField": "DB10.DBD12", "transform": "fahrenheit_to_celsius" },
+    { "idShort": "PartCount",        "rawField": "DB20.DBW0",  "transform": "identity" },
+    { "idShort": "FaultCode",        "rawField": "DB10.DBW20", "transform": "identity" },
+    { "idShort": "RunningStatus",    "rawField": "M20.1",      "transform": "int_to_bool" },
+    { "idShort": "OEE_Pct",          "rawField": "DB30.DBD0",  "transform": "fraction_to_percent" }
+  ]
+}

@@ -5,9 +5,9 @@
       "siemens": "urn:siemens:ie:profile:machine-operational-data:v1:"
     }
   ],
-  "id": "urn:siemens:ie:asset:CNC-001",
-  "title": "SINUMERIK CNC-001",
-  "description": "WoT capability model for SINUMERIK CNC-001, generated from its AAS submodel. Conforms to urn:siemens:ie:profile:machine-operational-data:v1.",
+  "id": "urn:siemens:ie:asset:GRIND-077",
+  "title": "Legacy S7-300 Grinding Cell GRIND-077",
+  "description": "WoT capability model for Legacy S7-300 Grinding Cell GRIND-077, generated from its AAS submodel. Conforms to urn:siemens:ie:profile:machine-operational-data:v1.",
   "securityDefinitions": {
     "nosec_sc": {
       "scheme": "nosec"
@@ -24,15 +24,15 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.MotorSpeed_RPM",
+          "siemens:jsonPath": "$.['DB10.DBD4']",
           "siemens:transform": "identity"
         }
       ],
       "unit": "RPM",
-      "description": "Spindle motor rotational speed."
+      "description": "Grinding wheel motor rotational speed."
     },
     "SpindleLoad_Pct": {
       "@type": "siemens:SpindleLoad_Pct",
@@ -41,15 +41,15 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.SpindleLoad_Pct",
-          "siemens:transform": "identity"
+          "siemens:jsonPath": "$.MW102",
+          "siemens:transform": "divide_10"
         }
       ],
       "unit": "%",
-      "description": "Spindle motor load as percent of rated torque."
+      "description": "Wheel motor load as percent of rated torque."
     },
     "FeedRate_mm_min": {
       "@type": "siemens:FeedRate_mm_min",
@@ -58,15 +58,15 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.FeedRate_mm_min",
+          "siemens:jsonPath": "$.['DB10.DBD8']",
           "siemens:transform": "identity"
         }
       ],
       "unit": "mm/min",
-      "description": "Programmed axis feed rate."
+      "description": "Table feed rate."
     },
     "ToolTemperature_C": {
       "@type": "siemens:ToolTemperature_C",
@@ -75,15 +75,15 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.ToolTemperature_C",
-          "siemens:transform": "identity"
+          "siemens:jsonPath": "$.['DB10.DBD12']",
+          "siemens:transform": "fahrenheit_to_celsius"
         }
       ],
       "unit": "degC",
-      "description": "Cutting tool tip temperature."
+      "description": "Grinding wheel temperature."
     },
     "PartCount": {
       "@type": "siemens:PartCount",
@@ -92,10 +92,10 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.PartCount",
+          "siemens:jsonPath": "$.['DB20.DBW0']",
           "siemens:transform": "identity"
         }
       ],
@@ -109,10 +109,10 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.FaultCode",
+          "siemens:jsonPath": "$.['DB10.DBW20']",
           "siemens:transform": "identity"
         }
       ],
@@ -125,14 +125,14 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.RunningStatus",
-          "siemens:transform": "identity"
+          "siemens:jsonPath": "$.['M20.1']",
+          "siemens:transform": "int_to_bool"
         }
       ],
-      "description": "True while the spindle is turning."
+      "description": "True while the wheel motor is running."
     },
     "OEE_Pct": {
       "@type": "siemens:OEE_Pct",
@@ -141,11 +141,11 @@
       "observable": true,
       "forms": [
         {
-          "href": "mqtt://<AIO_BROKER_HOST>:1883/ie/cnc",
+          "href": "mqtt://<AIO_BROKER_HOST>:1883/s7/grind077",
           "op": "observeproperty",
           "contentType": "application/json",
-          "siemens:jsonPath": "$.OEE_Pct",
-          "siemens:transform": "identity"
+          "siemens:jsonPath": "$.['DB30.DBD0']",
+          "siemens:transform": "fraction_to_percent"
         }
       ],
       "unit": "%",

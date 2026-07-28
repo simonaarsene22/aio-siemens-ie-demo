@@ -63,7 +63,7 @@ A complete reference implementation connecting a **Siemens Industrial Edge CNC s
 | `simulator/` | Siemens IE CNC Python simulator with demo mode |
 | `config/` | Variables template — fill in once, sourced by every script |
 | `agent/` | Python agent: Azure OpenAI + KQL tools over Fabric telemetry |
-| `ontology/` | Siemens AAS asset ontology for the CNC, mapped to an AIO Asset — testable locally, no cluster needed |
+| `ontology/` | Shared Siemens AAS profile mapped to AIO Assets for two devices (one clean, one deliberately messy) — testable locally, no cluster needed |
 | `docs/` | Step-by-step Fabric setup, agent guide, and ontology mapping guide |
 
 ## Prerequisites
@@ -222,15 +222,25 @@ See [docs/agents.md](docs/agents.md) for full setup, example questions, and how 
 
 ### 11 — (Optional) Test the Siemens ontology → AIO asset mapping
 
-No cluster required — this validates locally that the Siemens AAS ontology
-for the CNC survives the hop to the WoT Thing Description AIO's connector
-framework actually reads, matches what the simulator publishes, and that the
-generated AIO Asset definition stays in sync with all of it:
+No cluster required — this validates locally that a shared Siemens AAS
+profile survives the hop to the WoT Thing Description AIO's connector
+framework actually reads, for two very different devices: `cnc001` (an
+IE-connected CNC whose raw tags already match the profile) and `grind077`
+(a legacy S7-300 grinder with cryptic tags and mismatched units — a scaled
+integer, Fahrenheit, a 0/1 flag). Both resolve into the identical canonical
+shape.
 
 ```bash
-python ontology/generate_wot_td.py
-python ontology/generate_aio_asset.py
+python ontology/generate_wot_td.py cnc001
+python ontology/generate_aio_asset.py cnc001
+python ontology/generate_wot_td.py grind077
+python ontology/generate_aio_asset.py grind077
+
 python -m unittest ontology.test_ontology_mapping -v
+
+# See the mapping resolve against a live simulator value, for each device:
+python ontology/show_live_mapping.py cnc001
+python ontology/show_live_mapping.py grind077
 ```
 
 See [docs/ontology.md](docs/ontology.md) for what's being modeled and why.
@@ -288,20 +298,31 @@ aio-siemens-ie-demo/
 ├── k8s/
 │   ├── broker-listener-1883.yaml ← AIO MQTT broker on port 1883
 │   ├── dataflow-endpoint-eh.yaml ← Event Hub Kafka endpoint (parameterized)
-│   └── asset-cnc-001.yaml        ← Generated AIO Asset (from ontology/)
+│   ├── asset-cnc-001.yaml        ← Generated AIO Asset for CNC-001
+│   └── asset-grind-077.yaml      ← Generated AIO Asset for GRIND-077
 ├── simulator/
-│   ├── simulate_ie_cnc.py        ← Siemens IE CNC simulator
+│   ├── simulate_ie_cnc.py        ← Siemens IE CNC simulator (clean, friendly tags)
+│   ├── simulate_grind077_plc.py  ← Legacy S7-300 grinder simulator (messy raw PLC tags)
 │   └── requirements.txt
 ├── agent/
 │   ├── agent.py                  ← Azure OpenAI agent with KQL tools
 │   └── requirements.txt
 ├── ontology/
-│   ├── aas_cnc_submodel.json     ← Siemens AAS asset ontology for the CNC
-│   ├── aas_loader.py             ← Shared AAS-reading helper
-│   ├── generate_wot_td.py        ← Maps the AAS ontology onto a WoT Thing Description
-│   ├── cnc-001.td.json           ← Generated WoT model (what AIO's connector reads)
-│   ├── generate_aio_asset.py     ← Maps the WoT model onto an AIO Asset
-│   └── test_ontology_mapping.py  ← Local test: AAS vs WoT vs simulator vs AIO asset
+│   ├── profiles/
+│   │   └── machine_operational_data_profile.json  ← Shared canonical property template
+│   ├── bindings/
+│   │   └── grind077_binding.json ← Raw field + transform per property, for GRIND-077 only
+│   ├── aas_cnc_submodel.json     ← CNC-001's AAS instance of the profile
+│   ├── aas_grind077_submodel.json← GRIND-077's AAS instance of the profile
+│   ├── aas_loader.py             ← Shared AAS-reading helper (matches by profile semanticId)
+│   ├── devices.py                ← Per-device registry (paths, binding, MQTT topic, ...)
+│   ├── transforms.py             ← Named transforms (divide_10, fahrenheit_to_celsius, ...)
+│   ├── generate_wot_td.py        ← Maps a device's AAS + binding onto a WoT Thing Description
+│   ├── cnc-001.td.json           ← Generated WoT model for CNC-001
+│   ├── grind-077.td.json         ← Generated WoT model for GRIND-077
+│   ├── generate_aio_asset.py     ← Maps a device's WoT model onto an AIO Asset
+│   ├── show_live_mapping.py      ← Prints raw value → transform → resolved value, one screen
+│   └── test_ontology_mapping.py  ← Local test: profile conformance + AAS/WoT/AIO/transforms, both devices
 └── docs/
     ├── fabric-setup.md           ← Fabric Eventstream + KQL setup
     ├── agents.md                 ← Data Activator + Python agent setup

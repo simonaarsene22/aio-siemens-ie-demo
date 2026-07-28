@@ -1,0 +1,78 @@
+{
+  "modelType": "Submodel",
+  "isTemplate": true,
+  "id": "urn:siemens:ie:profile:machine-operational-data:v1",
+  "idShort": "MachineOperationalDataProfile",
+  "description": [
+    {
+      "language": "en",
+      "text": "Reusable AAS submodel template (an IDTA-style 'profile') for machine operational telemetry. Any device's AAS submodel that declares this as its submodel-level semanticId is asserting conformance: it exposes exactly these properties, with these types and units, regardless of the raw protocol or tag layout underneath. This is what lets a modern IE-connected CNC and a legacy S7 grinder normalize into the same shape."
+    }
+  ],
+  "submodelElements": [
+    {
+      "modelType": "Property",
+      "idShort": "MotorSpeed_RPM",
+      "valueType": "xs:double",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:MotorSpeed_RPM" }] },
+      "description": [{ "language": "en", "text": "Primary motor/spindle rotational speed." }],
+      "unit": "RPM"
+    },
+    {
+      "modelType": "Property",
+      "idShort": "SpindleLoad_Pct",
+      "valueType": "xs:double",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:SpindleLoad_Pct" }] },
+      "description": [{ "language": "en", "text": "Primary motor load as percent of rated torque." }],
+      "unit": "%"
+    },
+    {
+      "modelType": "Property",
+      "idShort": "FeedRate_mm_min",
+      "valueType": "xs:double",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:FeedRate_mm_min" }] },
+      "description": [{ "language": "en", "text": "Programmed axis/table feed rate." }],
+      "unit": "mm/min"
+    },
+    {
+      "modelType": "Property",
+      "idShort": "ToolTemperature_C",
+      "valueType": "xs:double",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:ToolTemperature_C" }] },
+      "description": [{ "language": "en", "text": "Cutting tool / grinding wheel tip temperature." }],
+      "unit": "degC"
+    },
+    {
+      "modelType": "Property",
+      "idShort": "PartCount",
+      "valueType": "xs:int",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:PartCount" }] },
+      "description": [{ "language": "en", "text": "Cumulative parts produced since asset startup." }],
+      "unit": "count"
+    },
+    {
+      "modelType": "Property",
+      "idShort": "FaultCode",
+      "valueType": "xs:int",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:FaultCode" }] },
+      "description": [{ "language": "en", "text": "Active fault/alarm code, 0 = no fault." }],
+      "unit": null
+    },
+    {
+      "modelType": "Property",
+      "idShort": "RunningStatus",
+      "valueType": "xs:boolean",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:RunningStatus" }] },
+      "description": [{ "language": "en", "text": "True while the machine is actively running." }],
+      "unit": null
+    },
+    {
+      "modelType": "Property",
+      "idShort": "OEE_Pct",
+      "valueType": "xs:double",
+      "semanticId": { "type": "ExternalReference", "keys": [{ "type": "GlobalReference", "value": "urn:siemens:ie:profile:machine-operational-data:v1:OEE_Pct" }] },
+      "description": [{ "language": "en", "text": "Overall Equipment Effectiveness." }],
+      "unit": "%"
+    }
+  ]
+}
